@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "fixio-fabric",
+  "version": "${version}",
+  "name": "FixIO fabric mod",
+  "description": "fix minecraft io(native)",
+  "authors": [
+    "shiro8613"
+  ],
+  "license": "All-Right-Reserved",
+  "icon": "assets/fixio-fabirc/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "dev.shiro8613.fixio.fabric.FixIoFabric"
+    ]
+  },
+  "mixins": [
+    "fixio-fabric.mixin.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.2",
+    "java": ">=25"
+  }
+}

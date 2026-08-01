@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "dev.shiro8613.fixio.fabric.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ConnectionMixin",
+    "NbtIoMixin",
+    "RegionFileVersionMixin",
+    "ServerLoginPacketListenerImplMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
