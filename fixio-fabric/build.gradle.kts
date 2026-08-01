@@ -8,4 +8,9 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:0.19.3")
 
     implementation(project(":native-api"))
+    include(project(":native-api"))
+}
+
+tasks.withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
