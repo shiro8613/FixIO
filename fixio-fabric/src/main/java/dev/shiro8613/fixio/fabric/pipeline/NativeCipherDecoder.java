@@ -1,6 +1,5 @@
 package dev.shiro8613.fixio.fabric.pipeline;
 
-import com.mojang.logging.LogUtils;
 import dev.shiro8613.fixio.nativeapi.crypto.NettyNativeCipher;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
