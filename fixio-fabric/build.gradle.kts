@@ -9,6 +9,12 @@ dependencies {
 
     implementation(project(":native-api"))
     include(project(":native-api"))
+
+    implementation("org.lwjgl:lwjgl:3.4.1")
+    include("org.lwjgl:lwjgl:3.4.1")
+
+    include("org.lwjgl:lwjgl:3.4.1:natives-windows")
+    include("org.lwjgl:lwjgl:3.4.1:natives-linux")
 }
 
 tasks.withType<Jar> {

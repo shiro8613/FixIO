@@ -1,14 +1,14 @@
 package dev.shiro8613.fixio.nativeapi.compression;
 
-import java.io.ByteArrayOutputStream;
+import dev.shiro8613.fixio.nativeapi.io.DirectBufferOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import org.lwjgl.system.MemoryUtil;
 
 public class NativeZlibOutputStream extends OutputStream {
-
     private final OutputStream out;
-    private final ByteArrayOutputStream buffer = new ByteArrayOutputStream(16384);
+    private final DirectBufferOutputStream buffer = new DirectBufferOutputStream(16 * 1024);
     private boolean closed = false;
 
     public NativeZlibOutputStream(OutputStream out) {
@@ -27,15 +27,12 @@ public class NativeZlibOutputStream extends OutputStream {
         if (!closed) {
             closed = true;
 
-            byte[] rawBytes = buffer.toByteArray();
-            if (rawBytes.length > 0) {
-                ByteBuffer srcBuffer = ByteBuffer.allocateDirect(rawBytes.length);
-                srcBuffer.put(rawBytes);
-                srcBuffer.flip();
-
-                ByteBuffer compressedBuffer = CompressorHolder.get().zlibCompressSmartBuffer(
-                    srcBuffer, 0, rawBytes.length
+            ByteBuffer buf = buffer.getBuffer();
+            if (buf != null && buf.remaining() > 0) {
+                ByteBuffer compressedBuffer = CompressorHolder.get().zlibCompressSmartDirect(
+                    MemoryUtil.memAddress(buf), 0, buf.remaining()
                 );
+                buffer.close();
 
                 if (compressedBuffer == null) {
                     throw new IOException("Failed to compress ZLIB buffer via libdeflate (Smart Native)");

@@ -8,14 +8,14 @@
 #define DEFINE_COMPRESS_DIRECT(FUNC_NAME, LIBDEFLATE_FUNC) \
 JNIEXPORT jint JNICALL FUNC_NAME( \
     JNIEnv *env, jclass clazz, jlong ctx_ptr, \
-    jlong src_address, jint src_len, jlong dst_address, jint dst_capacity \
+    jlong src_address, jint src_off, jint src_len, jlong dst_address, jint dst_off, jint dst_capacity \
 ) { \
     NativeCompressorCtx* ctx = (NativeCompressorCtx*)(uintptr_t)ctx_ptr; \
     if (!ctx || !ctx->compressor) return -1; \
     uint8_t* src = (uint8_t*)(uintptr_t)src_address; \
     uint8_t* dst = (uint8_t*)(uintptr_t)dst_address; \
     if (!src || !dst) return -3; \
-    size_t actual_out = LIBDEFLATE_FUNC(ctx->compressor, src, (size_t)src_len, dst, (size_t)dst_capacity); \
+    size_t actual_out = LIBDEFLATE_FUNC(ctx->compressor, src + src_off, (size_t)src_len, dst + dst_off, (size_t)dst_capacity); \
     return (actual_out == 0) ? -2 : (jint)actual_out; \
 }
 
@@ -23,7 +23,7 @@ JNIEXPORT jint JNICALL FUNC_NAME( \
 #define DEFINE_DECOMPRESS_DIRECT(FUNC_NAME, LIBDEFLATE_FUNC) \
 JNIEXPORT jint JNICALL FUNC_NAME( \
     JNIEnv *env, jclass clazz, jlong ctx_ptr, \
-    jlong src_address, jint src_len, jlong dst_address, jint dst_capacity \
+    jlong src_address, jint src_off, jint src_len, jlong dst_address, jint dst_off, jint dst_capacity \
 ) { \
     NativeCompressorCtx* ctx = (NativeCompressorCtx*)(uintptr_t)ctx_ptr; \
     if (!ctx || !ctx->decompressor) return -1; \
@@ -31,7 +31,7 @@ JNIEXPORT jint JNICALL FUNC_NAME( \
     uint8_t* dst = (uint8_t*)(uintptr_t)dst_address; \
     if (!src || !dst) return -3; \
     size_t actual_out = 0; \
-    enum libdeflate_result res = LIBDEFLATE_FUNC(ctx->decompressor, src, (size_t)src_len, dst, (size_t)dst_capacity, &actual_out); \
+    enum libdeflate_result res = LIBDEFLATE_FUNC(ctx->decompressor, src + src_off, (size_t)src_len, dst + dst_off, (size_t)dst_capacity, &actual_out); \
     return (res != LIBDEFLATE_SUCCESS) ? -2 : (jint)actual_out; \
 }
 
@@ -39,7 +39,7 @@ JNIEXPORT jint JNICALL FUNC_NAME( \
 #define DEFINE_COMPRESS_BUFFER(FUNC_NAME, LIBDEFLATE_FUNC) \
 JNIEXPORT jint JNICALL FUNC_NAME( \
     JNIEnv *env, jclass clazz, jlong ctx_ptr, \
-    jobject src_buf, jint src_off, jint src_len, jobject dst_buf, jint dst_off, jint dst_capacity \
+    jobject src_buf, jint src_off, jint src_len,jobject dst_buf, jint dst_off, jint dst_capacity \
 ) { \
     NativeCompressorCtx* ctx = (NativeCompressorCtx*)(uintptr_t)ctx_ptr; \
     if (!ctx || !ctx->compressor) return -1; \
@@ -69,14 +69,14 @@ JNIEXPORT jint JNICALL FUNC_NAME( \
 // ==========================================
 // スマート解凍（0x78ヘッダー自動探索 + realloc自動拡張）
 // ==========================================
-#define DEFINE_DECOMPRESS_SMART_BUFFER(FUNC_NAME, LIBDEFLATE_FUNC) \
+#define DEFINE_DECOMPRESS_SMART_DIRECT(FUNC_NAME, LIBDEFLATE_FUNC) \
 JNIEXPORT jobject JNICALL FUNC_NAME( \
     JNIEnv *env, jclass clazz, jlong ctx_ptr, \
-    jobject src_buf, jint src_off, jint src_len \
+    jlong src_address, jint src_off, jint src_len \
 ) { \
     NativeCompressorCtx* ctx = (NativeCompressorCtx*)(uintptr_t)ctx_ptr; \
     if (!ctx || !ctx->decompressor) return NULL; \
-    uint8_t* src = (uint8_t*)(*env)->GetDirectBufferAddress(env, src_buf); \
+    uint8_t* src = (uint8_t*)src_address; \
     if (!src || src_len <= 0) return NULL; \
     \
     uint8_t* src_start = src + src_off; \
@@ -127,14 +127,14 @@ JNIEXPORT jobject JNICALL FUNC_NAME( \
     } \
 }
 
-#define DEFINE_COMPRESS_SMART_BUFFER(FUNC_NAME, LIBDEFLATE_FUNC) \
+#define DEFINE_COMPRESS_SMART_DIRECT(FUNC_NAME, LIBDEFLATE_FUNC) \
 JNIEXPORT jobject JNICALL FUNC_NAME( \
     JNIEnv *env, jclass clazz, jlong ctx_ptr, \
-    jobject src_buf, jint src_off, jint src_len \
+    jlong src_address, jint src_off, jint src_len \
 ) { \
     NativeCompressorCtx* ctx = (NativeCompressorCtx*)(uintptr_t)ctx_ptr; \
     if (!ctx || !ctx->compressor) return NULL; \
-    uint8_t* src = (uint8_t*)(*env)->GetDirectBufferAddress(env, src_buf); \
+    uint8_t* src = (uint8_t*)src_address; \
     if (!src || src_len <= 0) return NULL; \
     \
     uint8_t* actual_src = src + src_off; \
@@ -154,8 +154,8 @@ JNIEXPORT jobject JNICALL FUNC_NAME( \
     return (*env)->NewDirectByteBuffer(env, dst, (jlong)actual_out); \
 }
 
-DEFINE_DECOMPRESS_SMART_BUFFER(Java_dev_shiro8613_fixio_nativeapi_compression_NativeCompressor_zlibDecompressSmartBuffer, libdeflate_zlib_decompress)
-DEFINE_COMPRESS_SMART_BUFFER(Java_dev_shiro8613_fixio_nativeapi_compression_NativeCompressor_zlibCompressSmartBuffer, libdeflate_zlib_compress)
+DEFINE_DECOMPRESS_SMART_DIRECT(Java_dev_shiro8613_fixio_nativeapi_compression_NativeCompressor_zlibDecompressSmartDirect, libdeflate_zlib_decompress)
+DEFINE_COMPRESS_SMART_DIRECT(Java_dev_shiro8613_fixio_nativeapi_compression_NativeCompressor_zlibCompressSmartDirect, libdeflate_zlib_compress)
 
 DEFINE_COMPRESS_DIRECT(Java_dev_shiro8613_fixio_nativeapi_compression_NativeCompressor_zlibCompressDirect, libdeflate_zlib_compress)
 DEFINE_DECOMPRESS_DIRECT(Java_dev_shiro8613_fixio_nativeapi_compression_NativeCompressor_zlibDecompressDirect, libdeflate_zlib_decompress)

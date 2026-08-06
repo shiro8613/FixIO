@@ -1,14 +1,15 @@
 package dev.shiro8613.fixio.nativeapi.compression;
 
-import java.io.ByteArrayOutputStream;
+import dev.shiro8613.fixio.nativeapi.io.DirectBufferOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import org.lwjgl.system.MemoryUtil;
 
 public class NativeGzipOutputStream extends OutputStream {
 
     private final OutputStream out;
-    private final ByteArrayOutputStream buffer = new ByteArrayOutputStream(16 * 1024);
+    private final DirectBufferOutputStream buffer = new DirectBufferOutputStream(16 * 1024);
     private boolean closed = false;
 
     public NativeGzipOutputStream(OutputStream out) {
@@ -30,18 +31,15 @@ public class NativeGzipOutputStream extends OutputStream {
         if (!closed) {
             closed = true;
 
-            byte[] rawBytes = buffer.toByteArray();
-            if (rawBytes.length > 0) {
-                ByteBuffer directInput = ByteBuffer.allocateDirect(rawBytes.length);
-                directInput.put(rawBytes);
-                directInput.flip();
+            ByteBuffer buf = buffer.getBuffer();
+            if (buf != null && buf.remaining() > 0) {
+                ByteBuffer directOutput = MemoryUtil.memAlloc(buf.remaining() + 512);
 
-                ByteBuffer directOutput = ByteBuffer.allocateDirect(rawBytes.length + 512);
-
-                int compressedSize = CompressorHolder.get().gzipCompressBuffer(
-                    directInput, 0, rawBytes.length,
-                    directOutput, 0, directOutput.capacity()
+                int compressedSize = CompressorHolder.get().gzipCompressDirect(
+                    MemoryUtil.memAddress(buf), buf.remaining(),
+                    MemoryUtil.memAddress(directOutput), directOutput.capacity()
                 );
+                buffer.close();
 
                 if (compressedSize < 0) {
                     throw new IOException("Failed to compress GZIP stream via native libdeflate");

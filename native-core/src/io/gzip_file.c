@@ -95,13 +95,13 @@ Java_dev_shiro8613_fixio_nativeapi_io_NativeGzipFile_readAndDecompressFileNative
 JNIEXPORT jboolean JNICALL
 Java_dev_shiro8613_fixio_nativeapi_io_NativeGzipFile_compressAndWriteFileNative(
     JNIEnv *env, jclass clazz,
-    jlong ctx_ptr, jstring path_str, jobject src_buffer, jint src_len, jint compression_level
+    jlong ctx_ptr, jstring path_str, jlong src_address, jint src_len, jint compression_level
 ) {
     NativeCompressorCtx* ctx = (NativeCompressorCtx*)(uintptr_t)ctx_ptr;
 
-    if (!ctx || !ctx->compressor || !path_str || !src_buffer || src_len <= 0) return JNI_FALSE;
+    if (!ctx || !ctx->compressor || !path_str || src_len <= 0) return JNI_FALSE;
 
-    uint8_t *src_buf = (uint8_t*)(*env)->GetDirectBufferAddress(env, src_buffer);
+    uint8_t *src_buf = (uint8_t*)src_address;
     if (!src_buf) return JNI_FALSE;
 
     size_t max_dst_size = libdeflate_gzip_compress_bound(ctx->compressor, (size_t)src_len);

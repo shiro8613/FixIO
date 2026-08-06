@@ -141,7 +141,7 @@ class NativeCompressorTest {
         compressor.close();
 
         assertThrows(IllegalStateException.class, () ->
-            compressor.zlibCompressDirect(1000, 10, 2000, 100)
+            compressor.zlibCompressDirect(1000, 0, 10, 2000, 0, 100)
         );
     }
 }

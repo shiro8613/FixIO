@@ -2,6 +2,7 @@ package dev.shiro8613.fixio.nativeapi.compression;
 
 import io.netty.buffer.ByteBuf;
 import java.nio.ByteBuffer;
+import org.lwjgl.system.MemoryUtil;
 
 public class NettyNativeCompressor {
 
@@ -18,8 +19,8 @@ public class NettyNativeCompressor {
             long dstAddr = dst.memoryAddress() + dst.writerIndex();
 
             int compressedSize = compressor.zlibCompressDirect(
-                srcAddr, uncompressedLength,
-                dstAddr, dst.writableBytes()
+                srcAddr, 0, uncompressedLength,
+                dstAddr, 0, dst.writableBytes()
             );
 
             if (compressedSize > 0) {
@@ -32,9 +33,9 @@ public class NettyNativeCompressor {
         ByteBuffer srcNio = src.nioBuffer(src.readerIndex(), uncompressedLength);
         ByteBuffer dstNio = dst.nioBuffer(dst.writerIndex(), dst.writableBytes());
 
-        int compressedSize = compressor.zlibCompressBuffer(
-            srcNio, srcNio.position(), uncompressedLength,
-            dstNio, dstNio.position(), dstNio.remaining()
+        int compressedSize = compressor.zlibCompressDirect(
+            MemoryUtil.memAddress(srcNio), srcNio.position(), uncompressedLength,
+            MemoryUtil.memAddress(dstNio), dstNio.position(), dstNio.remaining()
         );
 
         if (compressedSize > 0) {
@@ -55,8 +56,8 @@ public class NettyNativeCompressor {
             long dstAddr = dst.memoryAddress() + dst.writerIndex();
 
             int decompressedSize = compressor.zlibDecompressDirect(
-                srcAddr, src.readableBytes(),
-                dstAddr, uncompressedLength
+                srcAddr, 0, src.readableBytes(),
+                dstAddr, 0, uncompressedLength
             );
 
             if (decompressedSize > 0) {
@@ -69,9 +70,9 @@ public class NettyNativeCompressor {
         ByteBuffer srcNio = src.nioBuffer(src.readerIndex(), src.readableBytes());
         ByteBuffer dstNio = dst.nioBuffer(dst.writerIndex(), uncompressedLength);
 
-        int decompressedSize = compressor.zlibDecompressBuffer(
-            srcNio, srcNio.position(), srcNio.remaining(),
-            dstNio, dstNio.position(), uncompressedLength
+        int decompressedSize = compressor.zlibDecompressDirect(
+            MemoryUtil.memAddress(srcNio), srcNio.position(), srcNio.remaining(),
+            MemoryUtil.memAddress(dstNio), dstNio.position(), uncompressedLength
         );
 
         if (decompressedSize > 0) {

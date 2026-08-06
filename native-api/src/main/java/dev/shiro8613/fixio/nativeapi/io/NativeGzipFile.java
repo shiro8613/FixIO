@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.lwjgl.system.MemoryUtil;
 
 public class NativeGzipFile implements AutoCloseable {
 
@@ -44,7 +45,8 @@ public class NativeGzipFile implements AutoCloseable {
 
     public static void writeCompressed(Path path, ByteBuffer rawData) throws IOException {
         String absolutePath = path.toAbsolutePath().toString();
-        boolean success = compressAndWriteFileNative(CompressorHolder.get().ptr(), absolutePath, rawData, rawData.remaining(), 6);
+        boolean success = compressAndWriteFileNative(CompressorHolder.get().ptr(), absolutePath,
+            MemoryUtil.memAddress(rawData), rawData.remaining(), 6);
 
         if (!success) {
             throw new IOException("Failed to compress and write native gzip file: " + absolutePath);
@@ -52,6 +54,6 @@ public class NativeGzipFile implements AutoCloseable {
     }
 
     private static native ByteBuffer readAndDecompressFileNative(long ctxPtr, String filePath, int estimatedUncompressedSize);
-    private static native boolean compressAndWriteFileNative(long ctxPtr, String filePath, ByteBuffer srcBuffer, int srcLen, int compressionLevel);
+    private static native boolean compressAndWriteFileNative(long ctxPtr, String filePath, long srcAddress, int srcLen, int compressionLevel);
     private static native void freeNativeBuffer(ByteBuffer directBuffer);
 }

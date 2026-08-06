@@ -14,14 +14,14 @@ public class NativeCompressor extends NativeCompressorCtx {
         super(level);
     }
 
-    public int zlibCompressDirect(long srcAddress, int srcLen, long dstAddress, int dstCapacity) {
+    public int zlibCompressDirect(long srcAddress, int srcOff, int srcLen, long dstAddress, int dstOff, int dstCapacity) {
         checkClosed();
-        return zlibCompressDirect(ctxPtr, srcAddress, srcLen, dstAddress, dstCapacity);
+        return zlibCompressDirect(ctxPtr, srcAddress, srcOff, srcLen, dstAddress, dstOff, dstCapacity);
     }
 
-    public int zlibDecompressDirect(long srcAddress, int srcLen, long dstAddress, int dstCapacity) {
+    public int zlibDecompressDirect(long srcAddress, int srcOff, int srcLen, long dstAddress, int dstOff, int dstCapacity) {
         checkClosed();
-        return zlibDecompressDirect(ctxPtr, srcAddress, srcLen, dstAddress, dstCapacity);
+        return zlibDecompressDirect(ctxPtr, srcAddress, srcOff, srcLen, dstAddress, dstOff, dstCapacity);
     }
 
     public int zlibCompressBuffer(ByteBuffer src, int srcOff, int srcLen, ByteBuffer dst, int dstOff, int dstCapacity) {
@@ -40,20 +40,14 @@ public class NativeCompressor extends NativeCompressorCtx {
         return zlibDecompressBuffer(ctxPtr, src, srcOff, srcLen, dst, dstOff, dstCapacity);
     }
 
-    public ByteBuffer zlibCompressSmartBuffer(ByteBuffer src, int srcOff, int srcLen) {
+    public ByteBuffer zlibCompressSmartDirect(long srcAddress, int srcOff, int srcLen) {
         checkClosed();
-        if (!src.isDirect()) {
-            throw new IllegalArgumentException("Buffers must be direct ByteBuffer");
-        }
-        return zlibCompressSmartBuffer(ctxPtr, src, srcOff, srcLen);
+        return zlibCompressSmartDirect(ctxPtr, srcAddress, srcOff, srcLen);
     }
 
-    public ByteBuffer zlibDecompressSmartBuffer(ByteBuffer src, int srcOff, int srcLen) {
+    public ByteBuffer zlibDecompressSmartDirect(long srcAddress, int srcOff, int srcLen) {
         checkClosed();
-        if (!src.isDirect()) {
-            throw new IllegalArgumentException("Buffers must be direct ByteBuffer");
-        }
-        return zlibDecompressSmartBuffer(ctxPtr, src, srcOff, srcLen);
+        return zlibDecompressSmartDirect(ctxPtr, srcAddress, srcOff, srcLen);
     }
 
 
@@ -96,12 +90,12 @@ public class NativeCompressor extends NativeCompressorCtx {
 
     // --- Native JNI Methods ---
 
-    private static native int zlibCompressDirect(long ctx, long srcAddress, int srcLen, long dstAddress, int dstCapacity);
-    private static native int zlibDecompressDirect(long ctx, long srcAddress, int srcLen, long dstAddress, int dstCapacity);
+    private static native int zlibCompressDirect(long ctx, long srcAddress, int srcOff, int srcLen, long dstAddress, int dstOff, int dstCapacity);
+    private static native int zlibDecompressDirect(long ctx, long srcAddress, int srcOff, int srcLen, long dstAddress, int dstOff, int dstCapacity);
     private static native int zlibCompressBuffer(long ctx, ByteBuffer src, int srcOff, int srcLen, ByteBuffer dst, int dstOff, int dstCapacity);
     private static native int zlibDecompressBuffer(long ctx, ByteBuffer src, int srcOff, int srcLen, ByteBuffer dst, int dstOff, int dstCapacity);
-    private static native ByteBuffer zlibDecompressSmartBuffer(long ctxPtr, ByteBuffer src, int srcOff, int srcLen);
-    private static native ByteBuffer zlibCompressSmartBuffer(long ctxPtr, ByteBuffer src, int srcOff, int srcLen);
+    private static native ByteBuffer zlibDecompressSmartDirect(long ctxPtr, long srcAddress, int srcOff, int srcLen);
+    private static native ByteBuffer zlibCompressSmartDirect(long ctxPtr, long srcAddress, int srcOff, int srcLen);
 
     private static native int gzipCompressDirect(long ctx, long srcAddress, int srcLen, long dstAddress, int dstCapacity);
     private static native int gzipDecompressDirect(long ctx, long srcAddress, int srcLen, long dstAddress, int dstCapacity);

@@ -68,15 +68,13 @@ public abstract class NbtIoMixin {
         cancellable = true
     )
     private static void onWriteCompressedPath(CompoundTag tag, Path path, CallbackInfo ci) throws IOException {
-        ByteBuffer rawBuffer = ByteBuffer.allocateDirect(1024 * 1024);
+        DirectBufferOutputStream dbos = new DirectBufferOutputStream(1024 * 1024);
 
-        try (DataOutputStream dos = new DataOutputStream(new DirectBufferOutputStream(rawBuffer))) {
+        try (DataOutputStream dos = new DataOutputStream(dbos)) {
             write(tag, dos);
+            NativeGzipFile.writeCompressed(path, dbos.getBuffer());
         }
 
-        rawBuffer.flip();
-
-        NativeGzipFile.writeCompressed(path, rawBuffer);
 
         ci.cancel();
     }

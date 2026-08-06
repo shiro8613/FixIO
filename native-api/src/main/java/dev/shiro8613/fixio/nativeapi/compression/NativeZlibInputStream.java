@@ -5,6 +5,7 @@ import dev.shiro8613.fixio.nativeapi.io.DirectBufferInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import org.lwjgl.system.MemoryUtil;
 
 public class NativeZlibInputStream extends InputStream {
 
@@ -18,13 +19,14 @@ public class NativeZlibInputStream extends InputStream {
             throw new IOException("Empty ZLIB stream");
         }
 
-        ByteBuffer srcBuffer = ByteBuffer.allocateDirect(compressedBytes.length);
+        ByteBuffer srcBuffer = MemoryUtil.memAlloc(compressedBytes.length);
         srcBuffer.put(compressedBytes);
         srcBuffer.flip();
 
-        this.decompressedBuffer = CompressorHolder.get().zlibDecompressSmartBuffer(
-            srcBuffer, 0, compressedBytes.length
+        this.decompressedBuffer = CompressorHolder.get().zlibDecompressSmartDirect(
+            MemoryUtil.memAddress(srcBuffer), 0, compressedBytes.length
         );
+        MemoryUtil.memFree(srcBuffer);
 
         if (this.decompressedBuffer == null) {
             throw new IOException("Failed to decompress ZLIB buffer via libdeflate (Smart Native)");
