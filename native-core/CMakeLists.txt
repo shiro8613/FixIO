@@ -4,7 +4,6 @@ project(native_core C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(OPENSSL_USE_STATIC_LIBS ON)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -fPIC")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -28,7 +27,10 @@ add_library(native_core SHARED
     src/crypto/crypto_aes.c
     src/io/gzip_file.c
     src/common/deflate_utils.c
-    # src/storage/mca_reader.c      # ストレージ実装時に有効化
+    src/compute/compute_dispatch.c
+    src/compute/compute_scalar.c
+    src/compute/compute_avx2.c
+    src/compute/compute_avx512.c
 )
 
 target_include_directories(native_core PRIVATE
@@ -36,6 +38,7 @@ target_include_directories(native_core PRIVATE
     ${libdeflate_SOURCE_DIR}
     ${OPENSSL_INCLUDE_DIR}
     src/common
+    src/compute
    
 )
 
@@ -53,6 +56,27 @@ set_target_properties(native_core PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/../native-api/src/main/resources/natives"
 )
 
+target_compile_options(native_core PRIVATE -O3)
+
 if(WIN32)
     target_link_options(native_core PRIVATE -Wl,-export-all-symbols)
+
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+endif()
+
+if (MSVC)
+    set_source_files_properties(src/compute/compute_avx2.c PROPERTIES COMPILE_FLAGS "/arch:AVX2")
+    set_source_files_properties(src/compute/compute_avx512.c PROPERTIES COMPILE_FLAGS "/arch:AVX512")
+elseif (CMAKE_C_COMPILER_ID MATCHES "Clang")
+    if (WIN32)
+        set_source_files_properties(src/compute/compute_avx2.c PROPERTIES COMPILE_FLAGS "-mavx2")
+        set_source_files_properties(src/compute/compute_avx512.c PROPERTIES COMPILE_FLAGS "-mavx512f -mavx512vl")
+    else()
+        set_source_files_properties(src/compute/compute_avx2.c PROPERTIES COMPILE_FLAGS "-mavx2")
+        set_source_files_properties(src/compute/compute_avx512.c PROPERTIES COMPILE_FLAGS "-mavx512f -mavx512vl")
+    endif()
+else()
+    set_source_files_properties(src/compute/compute_avx2.c PROPERTIES COMPILE_FLAGS "-mavx2")
+    set_source_files_properties(src/compute/compute_avx512.c PROPERTIES COMPILE_FLAGS "-mavx512f -mavx512vl")
 endif()
