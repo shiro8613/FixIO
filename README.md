@@ -10,6 +10,7 @@
   - ファイルの読み書きをcで実装
   - 圧縮回りをlibdeflateに
 - ワールドデータ圧縮(Java deflate to libdeflate)
+- セクション単位のエンティティ検索をAVX2, AVX512に対応
 
 ## 動作環境
 
