@@ -4,7 +4,7 @@ plugins {
 
 allprojects {
     group = "dev.shiro8613.fixio"
-    version = "1.0.0"
+    version = project.version;
 
     repositories {
         mavenCentral()

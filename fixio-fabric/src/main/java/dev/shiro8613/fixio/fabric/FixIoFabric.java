@@ -6,6 +6,5 @@ public class FixIoFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
-
     }
 }
