@@ -24,3 +24,13 @@ Fabric-Api不要
 テストコード及び、一部コメントが書かれている部分はGemini君に頑張ってもらいました
 
 大規模サーバーじゃないとあまり効果でないかも？
+
+## Third-Party Libraries
+
+This project uses the following third-party libraries:
+
+* **[LWJGL](https://www.lwjgl.org/)** ([GitHub](https://github.com/LWJGL/lwjgl3)) - BSD 3-Clause License
+* **[OpenSSL](https://www.openssl.org/)** ([GitHub](https://github.com/openssl/openssl)) - Apache License 2.0
+* **[libdeflate](https://github.com/ebiggers/libdeflate)** - MIT License
+
+For full license texts and copyright notices, please see [THIRD_PARTY_LICENSES.txt](./THIRD_PARTY_LICENSES.txt).
